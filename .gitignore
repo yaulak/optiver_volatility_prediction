@@ -1,0 +1,20 @@
+# Ignore system files
+.DS_Store
+
+.gitignore
+
+# Ignore virtual environments
+.venv/
+
+# Ignore Python cache files
+__pycache__/
+
+# Ignore PyCharm project files
+.idea/
+
+# Ignore large data/model files
+models/*.pkl
+feature_engineering_output/
+train_test_split/
+
+kaggle_notebook/
