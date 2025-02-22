@@ -4,9 +4,8 @@ from src.model_base import BaseModel
 class LinearRegressionModel(BaseModel):
     """Linear Regression Model (Baseline)"""
 
-    def __init__(self, model_name):
-        super().__init__(model_name)
-        #self.feature_list = ["volatility1"]  # ✅ Use actual features
+    def __init__(self, model_name, feature_list):
+        super().__init__(model_name, feature_list)
 
     def train(self, X_train, y_train):
         """Train Linear Regression Model"""

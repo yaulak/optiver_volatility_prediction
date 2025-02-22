@@ -12,9 +12,19 @@ __pycache__/
 # Ignore PyCharm project files
 .idea/
 
-# Ignore large data/model files
-models/*.pkl
-feature_engineering_output/
-train_test_split/
+# Ignore files
+data/*
+!data/.gitkeep
+
+feature_engineering_output/*
+!feature_engineering_output/.gitkeep
+
+models/**/*.pkl
+models/**/*.json
+!models/all_models/
+!models/best_model/
+
+train_test_split/*
+!train_test_split/.gitkeep
 
 kaggle_notebook/

@@ -1,6 +1,7 @@
 import os
 import pandas as pd
 import numpy as np
+import json
 from tqdm import tqdm
 from src.utils import detect_environment, download_kaggle_dataset, get_input_data_path, save_train_test_split
 from src.feature_engineering import apply_seconds_feature_engineering, apply_timeid_feature_engineering
@@ -23,6 +24,14 @@ os.makedirs(feature_engineering_output_folder, exist_ok=True)
 
 train_test_feature_target_folder = "feature_engineering_output/train_test_data/"
 os.makedirs(train_test_feature_target_folder, exist_ok=True)
+
+all_models_folder = "models/all_models/"
+os.makedirs(all_models_folder, exist_ok=True)
+
+new_model_folder = "models/new_model/"
+os.makedirs(new_model_folder, exist_ok=True)
+
+
 
 # Select features to compute
 BOOK_SECONDS_FEATURES = {'wap', 'log_return'}  # Book features at stock, time_id, seconds_in_bucket level
@@ -64,24 +73,24 @@ save_train_test_split(df = train_csv_df, output_dir= train_test_target_split_fol
 # =======================================
 
 print("\n⚙️ Step 3: Computing Second-Level Features (Book & Trade)...")
-# apply_seconds_feature_engineering(
-#     input_data_folder = input_data_folder,
-#     output_data_folder= feature_engineering_output_folder,
-#     book_seconds_features=BOOK_SECONDS_FEATURES,
-#     trade_seconds_features=TRADE_SECONDS_FEATURES
-# )
+apply_seconds_feature_engineering(
+    input_data_folder = input_data_folder,
+    output_data_folder= feature_engineering_output_folder,
+    book_seconds_features=BOOK_SECONDS_FEATURES,
+    trade_seconds_features=TRADE_SECONDS_FEATURES
+)
 
 # =======================================
 # ✅ Step 4: Compute Time-Level Features Using Saved Second-Level Features
 # =======================================
 
 print("\n⚙️ Step 4: Computing Time-Level Features (Using Second-Level Features)...")
-# apply_timeid_feature_engineering(
-#     input_data_folder = feature_engineering_output_folder,
-#     output_data_folder= feature_engineering_output_folder,
-#     book_timeid_features=BOOK_TIMEID_FEATURES,
-#     trade_timeid_features=TRADE_TIMEID_FEATURES
-# )
+apply_timeid_feature_engineering(
+    input_data_folder = feature_engineering_output_folder,
+    output_data_folder= feature_engineering_output_folder,
+    book_timeid_features=BOOK_TIMEID_FEATURES,
+    trade_timeid_features=TRADE_TIMEID_FEATURES
+)
 
 # =======================================
 # ✅ Step 5: Load Processed Features and Merge Them
@@ -146,18 +155,39 @@ print(f"✅ Processed testing data saved to {test_features_target_path}")
 
 print("\n🤖 Step 7: Training Model...")
 
-# Get model class dynamically
-model_class = globals()[MODEL_NAME]
-model = model_class(MODEL_NAME.lower())
+model = LinearRegressionModel(MODEL_NAME, feature_list = independent_variables)
 
 # Train Model
 X_train = train_features_target[independent_variables].values
 y_train = train_features_target['target'].values
-
 model.train(X_train, y_train)
+train_error = model.evaluate(X_train, y_train)
+print(f"📊 RMSPE (Training Error): {train_error:.6f}")
 
-# Evaluate Model (Training Error)
-model.evaluate(X_train, y_train)
+# Test data
+X_test = test_features_target[independent_variables].values
+y_test = test_features_target['target'].values
+test_error = model.evaluate(X_test, y_test)
+print(f"📊 RMSPE (Test Error): {test_error:.6f}")
 
 # Save Model
 model.save_model()
+
+
+# Save metadata
+metadata_new_model_path = os.path.join(new_model_folder, "new_model_metadata.json")
+metadata_all_models_path = os.path.join(all_models_folder, f"{MODEL_NAME}_metadata.json")
+
+metadata = {
+    "model_name": MODEL_NAME,
+    "features": independent_variables,
+    "train_error": train_error,
+    "test_error": test_error,
+    "date": pd.Timestamp.now().isoformat()
+}
+
+with open(metadata_new_model_path, "w") as f:
+    json.dump(metadata, f)
+with open(metadata_all_models_path, "w") as f:
+    json.dump(metadata, f)
+print(f"✅ Model metadata saved in {metadata_new_model_path} and {metadata_all_models_path}")
