@@ -43,7 +43,7 @@ class BaseModel(ABC):
         os.makedirs(all_models_folder, exist_ok=True)
 
         new_model_path = os.path.join(new_model_folder, "new_model.pkl")
-        all_models_path = os.path.join(all_models_folder, self.model_name)
+        all_models_path = os.path.join(all_models_folder, f"{self.model_name}.pkl")
         with open(new_model_path, "wb") as f:
             pickle.dump(self.model, f)
         with open(all_models_path, "wb") as f:
