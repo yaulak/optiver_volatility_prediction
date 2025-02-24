@@ -16,6 +16,11 @@ jobs:
       - name: 🚀 Checkout Repository
         uses: actions/checkout@v4
 
+      - name: 📦 Install Dependencies
+        run: |
+          pip install --upgrade pip
+          pip install -r requirements.txt  # Install all dependencies, including Kaggle CLI
+
       - name: 🔑 Set Up Kaggle API Credentials
         run: |
           mkdir -p ~/.kaggle
