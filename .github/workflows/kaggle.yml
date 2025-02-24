@@ -73,6 +73,7 @@ jobs:
           
           echo "🚀 Pushing Kaggle notebook..."
           if ! kaggle kernels push -p kaggle_notebook/; then
+            kaggle kernels push -p kaggle_notebook/ --debug
             echo "❌ ERROR: kaggle kernels push failed!"
             exit 1
           fi
