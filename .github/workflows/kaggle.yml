@@ -26,27 +26,40 @@ jobs:
           mkdir -p ~/.kaggle
           echo '${{ secrets.KAGGLE_JSON }}' | jq . > ~/.kaggle/kaggle.json
           chmod 600 ~/.kaggle/kaggle.json
-          echo "Checking contents of kaggle.json:"
+          echo "✅ Checking contents of kaggle.json:"
           cat ~/.kaggle/kaggle.json  # Print contents for debugging
 
       - name: ✅ Validate Kaggle Kernel Metadata
         run: |
           if [ ! -f kaggle_notebook/kernel-metadata.json ]; then
-            echo "❌ kernel-metadata.json is missing!"
+            echo "❌ ERROR: kernel-metadata.json is missing!"
             exit 1
           fi
+          echo "✅ kernel-metadata.json exists."
 
       - name: 📥 Download Dataset from Kaggle
         run: |
-          kaggle competitions download -c optiver-realized-volatility-prediction -p data/
-          unzip data/optiver-realized-volatility-prediction.zip -d data/
-          rm data/optiver-realized-volatility-prediction.zip  # Remove the zip after extraction
+          if [ -f ~/.kaggle/kaggle.json ]; then
+            kaggle competitions download -c optiver-realized-volatility-prediction -p data/
+            unzip data/optiver-realized-volatility-prediction.zip -d data/
+            rm data/optiver-realized-volatility-prediction.zip  # Remove the zip after extraction
+            echo "✅ Dataset downloaded and extracted successfully."
+          else
+            echo "❌ ERROR: kaggle.json not found, authentication failed."
+            exit 1
+          fi
 
       - name: 🚀 Run Kaggle Notebook
         run: |
-          kaggle kernels push -p kaggle_notebook/
-          kaggle kernels status yashasviaulak/train-eval
-          kaggle kernels output yashasviaulak/train-eval -p kaggle_notebook/
+          if [ -f kaggle_notebook/kernel-metadata.json ]; then
+            kaggle kernels push -p kaggle_notebook/
+            kaggle kernels status yashasviaulak/train-eval
+            kaggle kernels output yashasviaulak/train-eval -p kaggle_notebook/
+            echo "✅ Kaggle notebook executed successfully."
+          else
+            echo "❌ ERROR: kernel-metadata.json is missing, cannot execute notebook."
+            exit 1
+          fi
 
       - name: 📥 Download Executed Notebook
         uses: actions/upload-artifact@v4
