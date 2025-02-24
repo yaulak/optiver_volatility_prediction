@@ -26,6 +26,15 @@ jobs:
           mkdir -p ~/.kaggle
           echo '${{ secrets.KAGGLE_JSON }}' | jq . > ~/.kaggle/kaggle.json
           chmod 600 ~/.kaggle/kaggle.json
+          echo "Checking contents of kaggle.json:"
+          cat ~/.kaggle/kaggle.json  # Print contents for debugging
+
+      - name: ✅ Validate Kaggle Kernel Metadata
+        run: |
+          if [ ! -f kaggle_notebook/kernel-metadata.json ]; then
+            echo "❌ kernel-metadata.json is missing!"
+            exit 1
+          fi
 
       - name: 📥 Download Dataset from Kaggle
         run: |
