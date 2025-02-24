@@ -25,5 +25,3 @@ models/**/*.json
 
 train_test_split/*
 !train_test_split/.gitkeep
-
-kaggle_notebook/

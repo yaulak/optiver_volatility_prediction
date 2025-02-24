@@ -1,0 +1,10 @@
+{
+  "id": "yaulak/train-eval",
+  "title": "Train Evaluation Notebook",
+  "code_file": "train_eval.ipynb",
+  "language": "python",
+  "kernel_type": "notebook",
+  "is_private": "true",
+  "enable_gpu": "true",
+  "enable_internet": "true"
+}
