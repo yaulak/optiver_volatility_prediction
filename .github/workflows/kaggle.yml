@@ -26,6 +26,7 @@ jobs:
           mkdir -p ~/.kaggle
           echo "${{ secrets.KAGGLE_JSON }}" > ~/.kaggle/kaggle.json
           chmod 600 ~/.kaggle/kaggle.json
+          cat ~/.kaggle/kaggle.json  # Debugging: Ensure the file is created
 
       - name: 📥 Download Dataset from Kaggle
         run: |
