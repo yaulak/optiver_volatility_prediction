@@ -1,6 +1,6 @@
 {
   "id": "yashasviaulak/train-eval",
-  "title": "Train Evaluation Notebook",
+  "title": "train_eval",
   "code_file": "train_eval.ipynb",
   "language": "python",
   "kernel_type": "notebook",
