@@ -36,7 +36,7 @@ jobs:
           kaggle kernels output ${KAGGLE_USERNAME}/train_eval -p kaggle_notebook/
 
       - name: 📥 Download Executed Notebook
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: executed-notebook
           path: kaggle_notebook/

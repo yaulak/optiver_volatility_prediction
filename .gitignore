@@ -1,7 +1,6 @@
 # Ignore system files
 .DS_Store
 
-.gitignore
 
 # Ignore virtual environments
 .venv/
