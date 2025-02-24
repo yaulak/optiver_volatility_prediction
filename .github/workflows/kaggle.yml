@@ -29,13 +29,21 @@ jobs:
           echo "✅ Checking contents of kaggle.json:"
           cat ~/.kaggle/kaggle.json  # Print contents for debugging
 
-      - name: ✅ Validate Kaggle Kernel Metadata
+      - name: 🔎 Validate Kaggle Kernel Metadata
         run: |
           if [ ! -f kaggle_notebook/kernel-metadata.json ]; then
             echo "❌ ERROR: kernel-metadata.json is missing!"
             exit 1
           fi
           echo "✅ kernel-metadata.json exists."
+
+          if ! jq empty kaggle_notebook/kernel-metadata.json; then
+            echo "❌ ERROR: kernel-metadata.json is invalid JSON!"
+            exit 1
+          fi
+          echo "✅ kernel-metadata.json is valid JSON."
+      
+      
 
       - name: 📥 Download Dataset from Kaggle
         run: |
