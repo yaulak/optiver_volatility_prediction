@@ -1,10 +1,10 @@
 {
-  "id": "yashasviaulak/train-eval",
-  "title": "train_eval",
-  "code_file": "train_eval.ipynb",
+  "id": "yashasviaulak/train-eval-notebook",
+  "title": "Train Eval Notebook",
+  "code_file": "trainevalnotebook.ipynb",
   "language": "python",
   "kernel_type": "notebook",
-  "is_private": "true",
-  "enable_gpu": "true",
-  "enable_internet": "true"
+  "is_private": true,
+  "enable_gpu": true,
+  "enable_internet": true
 }

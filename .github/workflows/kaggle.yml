@@ -24,10 +24,19 @@ jobs:
       - name: 🔑 Set Up Kaggle API Credentials
         run: |
           mkdir -p ~/.kaggle
+          if [[ -z "${{ secrets.KAGGLE_JSON }}" ]]; then
+            echo "❌ ERROR: KAGGLE_JSON secret is empty!"
+            exit 1
+          fi
           echo '${{ secrets.KAGGLE_JSON }}' | jq . > ~/.kaggle/kaggle.json
           chmod 600 ~/.kaggle/kaggle.json
-          echo "✅ Checking contents of kaggle.json:"
-          cat ~/.kaggle/kaggle.json  # Print contents for debugging
+          
+          if ! jq empty ~/.kaggle/kaggle.json; then
+            echo "❌ ERROR: kaggle.json is invalid JSON!"
+            exit 1
+          fi
+          
+          echo "✅ kaggle.json created successfully."
 
       - name: 🔎 Validate Kaggle Kernel Metadata
         run: |
@@ -36,21 +45,19 @@ jobs:
             exit 1
           fi
           echo "✅ kernel-metadata.json exists."
-
+          
           if ! jq empty kaggle_notebook/kernel-metadata.json; then
             echo "❌ ERROR: kernel-metadata.json is invalid JSON!"
             exit 1
           fi
           echo "✅ kernel-metadata.json is valid JSON."
-      
-      
 
       - name: 📥 Download Dataset from Kaggle
         run: |
           if [ -f ~/.kaggle/kaggle.json ]; then
             kaggle competitions download -c optiver-realized-volatility-prediction -p data/
             unzip data/optiver-realized-volatility-prediction.zip -d data/
-            rm data/optiver-realized-volatility-prediction.zip  # Remove the zip after extraction
+            rm data/optiver-realized-volatility-prediction.zip
             echo "✅ Dataset downloaded and extracted successfully."
           else
             echo "❌ ERROR: kaggle.json not found, authentication failed."
@@ -59,15 +66,30 @@ jobs:
 
       - name: 🚀 Run Kaggle Notebook
         run: |
-          if [ -f kaggle_notebook/kernel-metadata.json ]; then
-            kaggle kernels push -p kaggle_notebook/
-            kaggle kernels status yashasviaulak/train-eval
-            kaggle kernels output yashasviaulak/train-eval -p kaggle_notebook/
-            echo "✅ Kaggle notebook executed successfully."
-          else
+          if [ ! -f kaggle_notebook/kernel-metadata.json ]; then
             echo "❌ ERROR: kernel-metadata.json is missing, cannot execute notebook."
             exit 1
           fi
+          
+          echo "🚀 Pushing Kaggle notebook..."
+          if ! kaggle kernels push -p kaggle_notebook/; then
+            echo "❌ ERROR: kaggle kernels push failed!"
+            exit 1
+          fi
+          
+          echo "🔄 Checking notebook status..."
+          if ! kaggle kernels status yashasviaulak/trainevalnotebook; then
+            echo "❌ ERROR: Failed to retrieve Kaggle kernel status!"
+            exit 1
+          fi
+          
+          echo "📥 Downloading executed notebook..."
+          if ! kaggle kernels output yashasviaulak/trainevalnotebook -p kaggle_notebook/; then
+            echo "❌ ERROR: Failed to download executed notebook!"
+            exit 1
+          fi
+          
+          echo "✅ Kaggle notebook executed and downloaded successfully."
 
       - name: 📥 Download Executed Notebook
         uses: actions/upload-artifact@v4
