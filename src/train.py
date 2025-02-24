@@ -3,10 +3,10 @@ import pandas as pd
 import numpy as np
 import json
 from tqdm import tqdm
-from src.utils import detect_environment, download_kaggle_dataset, get_input_data_path, save_train_test_split
+from src.utils import check_data_availability, save_train_test_split, clean_directory
 from src.feature_engineering import apply_seconds_feature_engineering, apply_timeid_feature_engineering
 from src.model_base import BaseModel
-from src.models import LinearRegressionModel  # Import all models
+from src.models import BaselineModel  # Import all models
 
 # =======================================
 # ✅ USER INPUTS: Modify as Needed
@@ -14,16 +14,18 @@ from src.models import LinearRegressionModel  # Import all models
 
 # All input and output folders and files
 # Data folder if the environment is local
-local_data_folder = "data/"
+input_data_folder = "data/"
 
 train_test_target_split_folder = "train_test_split/"
 os.makedirs(train_test_target_split_folder, exist_ok=True)
 
 feature_engineering_output_folder = "feature_engineering_output/"
 os.makedirs(feature_engineering_output_folder, exist_ok=True)
+clean_directory(feature_engineering_output_folder)
 
 train_test_feature_target_folder = "feature_engineering_output/train_test_data/"
 os.makedirs(train_test_feature_target_folder, exist_ok=True)
+clean_directory(train_test_feature_target_folder)
 
 all_models_folder = "models/all_models/"
 os.makedirs(all_models_folder, exist_ok=True)
@@ -40,26 +42,22 @@ TRADE_SECONDS_FEATURES = {}  # Trade features at stock, time_id, seconds_in_buck
 TRADE_TIMEID_FEATURES = {}  # Trade features at stock, time_id level (empty for now)
 
 # Choose model to train
-MODEL_NAME = "LinearRegressionModel"  # Change to another model if needed
+MODEL_NAME = "Baselinemodel"  # Change to another model if needed
 
 independent_variables = ['volatility1']
 
 
 # =======================================
-# ✅ Step 1: Detect Environment and Download Data (if local)
+# ✅ Step 1: Download Data if not downloaded
 # =======================================
-print("\n⚙️ Step 1: Detect Environment and Get Input Data Path")
-env = detect_environment()
-input_data_folder = get_input_data_path(env)
+print("\n⚙️ Step 1: Check data availability")
+check_data_availability(data_folder = input_data_folder)
 
 
 # =======================================
 # ✅ Step 2: Create train-test csv file (each stock_id will have 80% train and 20% test records)
 # =======================================
 print("\n✂️️ Step 2: Train test split of target variable")
-# Set a fixed random seed for reproducibility
-RANDOM_SEED = 42
-np.random.seed(RANDOM_SEED)
 
 # Load the original dataset
 train_csv_df = pd.read_csv(os.path.join(input_data_folder, "train.csv"))
@@ -155,7 +153,7 @@ print(f"✅ Processed testing data saved to {test_features_target_path}")
 
 print("\n🤖 Step 7: Training Model...")
 
-model = LinearRegressionModel(MODEL_NAME, feature_list = independent_variables)
+model = BaselineModel(MODEL_NAME, feature_list = independent_variables)
 
 # Train Model
 X_train = train_features_target[independent_variables].values

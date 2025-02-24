@@ -4,44 +4,27 @@ import numpy as np
 import pickle
 import zipfile
 import glob
+import shutil
 from sklearn.metrics import mean_squared_error
 from kaggle.api.kaggle_api_extended import KaggleApi
 
 # Define Kaggle dataset name
 KAGGLE_COMPETITION = "optiver-realized-volatility-prediction"
 
-def detect_environment():
-    """
-    Detects whether the script is running in Kaggle or Local.
-    """
-    if os.path.exists("/kaggle/input/"):
-        return "kaggle"
-    return "local"
 
-def get_input_data_path(env, local_path = None):
+def check_data_availability(data_folder = None):
     """
-    Returns the correct data path based on execution environment.
+    Checks if data is available and if not present, downloads the data
     """
-    # Kaggle environment
-    if env == "kaggle":
-        kaggle_path = "/kaggle/input/optiver-realized-volatility-prediction/"
-        print(f"✅ Running inside Kaggle. Using dataset from {kaggle_path}")
-        return kaggle_path
+    print("🌍 Checking dataset availability...")
 
-    # Local environment
-    if env == "local" and local_path is None:
-        local_path = "data/"
-        print(f"Creating the data folder {local_path}")
-
-    print("🌍 Running in Local. Checking dataset availability...")
-
-    if not os.path.exists(os.path.join(local_path, "book_train.parquet")):
+    if not os.path.exists(os.path.join(data_folder, "book_train.parquet")):
         print("⚠️ Dataset not found. Downloading from Kaggle...")
-        download_kaggle_dataset(local_path)
+        download_kaggle_dataset(data_folder)
     else:
-        print("✅ Dataset already present in system.")
+        print("✅ Dataset already present.")
 
-    return local_path
+    return
 
 def download_kaggle_dataset(destination):
     """
@@ -68,23 +51,41 @@ def download_kaggle_dataset(destination):
     print(f"✅ Dataset downloaded and extracted successfully to {destination}.")
 
 
+def clean_directory(directory):
+    """Remove all files and subdirectories except .gitkeep."""
+
+    # Iterate through all files and folders inside the directory
+    for file_path in glob.glob(os.path.join(directory, "*")):
+        if os.path.basename(file_path) != ".gitkeep":  # Keep .gitkeep
+            if os.path.isfile(file_path):
+                os.remove(file_path)  # Delete files
+            elif os.path.isdir(file_path):
+                shutil.rmtree(file_path)  # Remove non-empty directories
+
+
 def assign_train_test_label(df, train_ratio=0.8):
     """
     Adds a 'train_test' column to the DataFrame,
     assigning 'train' to 80% of rows per stock_id and 'test' to the rest.
     """
 
+    # Sort by stock_id and time_id to ensure stable ordering
+    df = df.sort_values(by=["stock_id", "time_id"]).reset_index(drop=True)
+
     # Assign a row number within each stock_id
-    df["row_num"] = df.groupby("stock_id").cumcount()
+    df["row_num"] = df.groupby("stock_id").cumcount() + 1  # Start from 1
 
-    # Normalize row number by total rows per stock_id
-    df["row_fraction"] = df["row_num"] / df.groupby("stock_id")["row_num"].transform("max")
+    # Get max row number per stock_id
+    df["total_rows"] = df.groupby("stock_id")["row_num"].transform("max")
 
-    # Assign train/test based on the fraction
+    # Compute row fraction
+    df["row_fraction"] = df["row_num"] / df["total_rows"]
+
+    # Assign train/test based on row fraction
     df["train_test"] = np.where(df["row_fraction"] <= train_ratio, "train", "test")
 
     # Drop helper columns
-    df.drop(columns=["row_num", "row_fraction"], inplace=True)
+    df.drop(columns=["row_num", "total_rows", "row_fraction"], inplace=True)
 
     return df
 
@@ -105,6 +106,8 @@ def save_train_test_split(df, output_dir, train_ratio = 0.8):
     # Define file paths
     train_csv_path = os.path.join(output_dir, "train.csv")
     test_csv_path = os.path.join(output_dir, "test.csv")
+    # old_train = pd.read_csv(train_csv_path)
+    # print(f"If old and new df is same: {(old_train == train_df).all().all()}")
 
     # Save train and test datasets separately
     train_df.to_csv(train_csv_path, index=False)

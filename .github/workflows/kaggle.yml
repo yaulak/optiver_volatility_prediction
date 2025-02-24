@@ -1,0 +1,42 @@
+name: Train Model on Kaggle
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  run-on-kaggle:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 🚀 Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: 🔑 Set Up Kaggle API Credentials
+        run: |
+          mkdir -p ~/.kaggle
+          echo "${{ secrets.KAGGLE_JSON }}" > ~/.kaggle/kaggle.json
+          chmod 600 ~/.kaggle/kaggle.json
+
+      - name: 📥 Download Dataset from Kaggle
+        run: |
+          kaggle competitions download -c optiver-realized-volatility-prediction -p data/
+          unzip data/optiver-realized-volatility-prediction.zip -d data/
+          rm data/optiver-realized-volatility-prediction.zip  # Remove the zip after extraction
+
+      - name: 🚀 Run Kaggle Notebook
+        run: |
+          KAGGLE_USERNAME=$(jq -r .username ~/.kaggle/kaggle.json)
+          kaggle kernels push -p kaggle_notebook/
+          kaggle kernels status ${KAGGLE_USERNAME}/train_eval
+          kaggle kernels output ${KAGGLE_USERNAME}/train_eval -p kaggle_notebook/
+
+      - name: 📥 Download Executed Notebook
+        uses: actions/upload-artifact@v3
+        with:
+          name: executed-notebook
+          path: kaggle_notebook/
