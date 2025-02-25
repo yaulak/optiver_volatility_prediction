@@ -18,10 +18,12 @@ jobs:
           pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: 🔧 Set PYTHONPATH
+      - name: 🔑 Set Up Kaggle API Credentials
         run: |
-          export PYTHONPATH=$PYTHONPATH:$GITHUB_WORKSPACE/src
-          echo "PYTHONPATH set to $PYTHONPATH"
+          mkdir -p ~/.kaggle
+          echo '${{ secrets.KAGGLE_JSON }}' > ~/.kaggle/kaggle.json
+          chmod 600 ~/.kaggle/kaggle.json
+          echo "✅ Kaggle credentials set up successfully."
 
       - name: 🚀 Run Training
         run: |
