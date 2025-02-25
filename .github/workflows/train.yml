@@ -19,10 +19,16 @@ jobs:
           pip install -r requirements.txt
 
       - name: 🔧 Set PYTHONPATH
-        run: echo "PYTHONPATH=$GITHUB_WORKSPACE/src" >> $GITHUB_ENV
+        run: |
+          export PYTHONPATH=$PYTHONPATH:$GITHUB_WORKSPACE/src
+          echo "PYTHONPATH set to $PYTHONPATH"
 
       - name: 🚀 Run Training
-        run: python src/train.py
+        run: |
+          export PYTHONPATH=$PYTHONPATH:$GITHUB_WORKSPACE/src
+          python src/train.py
 
       - name: 🚀 Run Model Comparison
-        run: python src/model_comparison.py
+        run: |
+          export PYTHONPATH=$PYTHONPATH:$GITHUB_WORKSPACE/src
+          python src/model_comparison.py
