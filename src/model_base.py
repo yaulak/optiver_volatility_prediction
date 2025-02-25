@@ -33,12 +33,8 @@ class BaseModel(ABC):
         """Calculate Root Mean Squared Percentage Error (RMSPE)."""
         return np.sqrt(np.mean(((y_true - y_pred) / y_true) ** 2))
 
-    def save_model(self, new_model_folder = None, all_models_folder = None):
+    def save_model(self, new_model_folder, all_models_folder):
         """Save the trained model."""
-        if not new_model_folder:
-            new_model_folder = f"models/new_model/"
-        if not all_models_folder:
-            all_models_folder = f"models/all_models/"
         os.makedirs(new_model_folder, exist_ok=True)  # Ensure directory exists
         os.makedirs(all_models_folder, exist_ok=True)
 

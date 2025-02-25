@@ -1,0 +1,28 @@
+name: Train Model on GitHub Actions
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  run-model:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 🚀 Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: 📦 Install Dependencies
+        run: |
+          pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: 🔧 Set PYTHONPATH
+        run: echo "PYTHONPATH=$GITHUB_WORKSPACE/src" >> $GITHUB_ENV
+
+      - name: 🚀 Run Training
+        run: python src/train.py
+
+      - name: 🚀 Run Model Comparison
+        run: python src/model_comparison.py

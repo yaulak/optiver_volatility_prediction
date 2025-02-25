@@ -4,9 +4,11 @@ import shutil
 import pandas as pd
 
 # Paths
-MODELS_DIR = "models"
-BEST_MODEL_DIR = os.path.join(MODELS_DIR, "best_model")
-NEW_MODEL_DIR = os.path.join(MODELS_DIR, "new_model")
+BASE_DIR = os.getenv("GITHUB_WORKSPACE", os.getcwd())
+
+BEST_MODEL_DIR = os.path.join(BASE_DIR, "models/best_model")
+os.makedirs(BEST_MODEL_DIR, exist_ok=True)
+NEW_MODEL_DIR = os.path.join(BASE_DIR, "models/new_model")
 
 BEST_MODEL_PATH = os.path.join(BEST_MODEL_DIR, "best_model.pkl")
 BEST_METADATA_PATH = os.path.join(BEST_MODEL_DIR, "best_model_metadata.json")

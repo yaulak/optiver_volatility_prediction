@@ -14,23 +14,25 @@ from src.models import BaselineModel  # Import all models
 
 # All input and output folders and files
 # Data folder if the environment is local
-input_data_folder = "data/"
+BASE_DIR = os.getenv("GITHUB_WORKSPACE", os.getcwd())
 
-train_test_target_split_folder = "train_test_split/"
+input_data_folder = os.path.join(BASE_DIR, "data/")
+
+train_test_target_split_folder = os.path.join(BASE_DIR, "train_test_split/")
 os.makedirs(train_test_target_split_folder, exist_ok=True)
 
-feature_engineering_output_folder = "feature_engineering_output/"
+feature_engineering_output_folder = os.path.join(BASE_DIR, "feature_engineering_output/")
 os.makedirs(feature_engineering_output_folder, exist_ok=True)
 clean_directory(feature_engineering_output_folder)
 
-train_test_feature_target_folder = "feature_engineering_output/train_test_data/"
+train_test_feature_target_folder = os.path.join(BASE_DIR, "feature_engineering_output/train_test_data/")
 os.makedirs(train_test_feature_target_folder, exist_ok=True)
 clean_directory(train_test_feature_target_folder)
 
-all_models_folder = "models/all_models/"
+all_models_folder = os.path.join(BASE_DIR, "models/all_models/")
 os.makedirs(all_models_folder, exist_ok=True)
 
-new_model_folder = "models/new_model/"
+new_model_folder = os.path.join(BASE_DIR, "models/new_model/")
 os.makedirs(new_model_folder, exist_ok=True)
 
 
@@ -169,7 +171,7 @@ test_error = model.evaluate(X_test, y_test)
 print(f"📊 RMSPE (Test Error): {test_error:.6f}")
 
 # Save Model
-model.save_model()
+model.save_model(new_model_folder, all_models_folder)
 
 
 # Save metadata
