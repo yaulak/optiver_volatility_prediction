@@ -32,6 +32,7 @@ jobs:
         with:
           name: best_model
           path: models/best_model/
+          if-no-files-found: ignore
 
       - name: 🏋 Run Training
         run: |
