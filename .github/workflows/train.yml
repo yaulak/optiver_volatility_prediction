@@ -1,4 +1,4 @@
-name: Train Model on GitHub Actions
+name: Train and Compare Model
 
 on:
   push:
@@ -8,7 +8,7 @@ on:
       - 'README.md'
 
 jobs:
-  train:
+  train-and-compare:
     runs-on: ubuntu-latest
 
     steps:
@@ -20,29 +20,12 @@ jobs:
           pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: 🏋 Train Model
+      - name: 🔑 Set Up Kaggle API Credentials
         run: |
-          export PYTHONPATH=$PYTHONPATH:$GITHUB_WORKSPACE/src
-          python src/train.py
-
-      - name: 📥 Upload New Model (before comparison)
-        uses: actions/upload-artifact@v4
-        with:
-          name: new_model
-          path: models/new_model/
-
-  compare:
-    needs: train
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: 🚀 Checkout Repository
-        uses: actions/checkout@v4
-
-      - name: 📦 Install Dependencies
-        run: |
-          pip install --upgrade pip
-          pip install -r requirements.txt
+          mkdir -p ~/.kaggle
+          echo '${{ secrets.KAGGLE_JSON }}' > ~/.kaggle/kaggle.json
+          chmod 600 ~/.kaggle/kaggle.json
+          echo "✅ Kaggle credentials set up successfully."
 
       - name: 📥 Download Best Model (if exists)
         uses: actions/download-artifact@v4
@@ -50,18 +33,17 @@ jobs:
           name: best_model
           path: models/best_model/
 
-      - name: 📥 Download New Model
-        uses: actions/download-artifact@v4
-        with:
-          name: new_model
-          path: models/new_model/
+      - name: 🏋 Run Training
+        run: |
+          export PYTHONPATH=$PYTHONPATH:$GITHUB_WORKSPACE/src
+          python src/train.py
 
-      - name: 🤖 Run Model Comparison
+      - name: 🔬 Run Model Comparison
         run: |
           export PYTHONPATH=$PYTHONPATH:$GITHUB_WORKSPACE/src
           python src/model_comparison.py
 
-      - name: 📥 Upload Best Model (AFTER COMPARISON)
+      - name: 📤 Upload New Best Model
         uses: actions/upload-artifact@v4
         with:
           name: best_model
