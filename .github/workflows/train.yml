@@ -27,12 +27,18 @@ jobs:
           chmod 600 ~/.kaggle/kaggle.json
           echo "✅ Kaggle credentials set up successfully."
 
-      - name: 📥 Download Best Model (if exists)
-        uses: actions/download-artifact@v4
-        with:
-          name: best_model
-          path: models/best_model/
-          if-no-files-found: ignore
+      - name: 📥 Check & Download Best Model (if exists)
+        run: |
+          COUNT=$(gh api repos/${{ github.repository }}/actions/artifacts --jq '.artifacts | map(select(.name=="best_model")) | length')
+          if [ "$COUNT" -gt 0 ]; then
+            echo "✅ Best model found. Downloading..."
+            gh run download --name best_model --dir models/best_model/
+          else
+            echo "⚠️ No previous best model found. Skipping download."
+          fi
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
 
       - name: 🏋 Run Training
         run: |
