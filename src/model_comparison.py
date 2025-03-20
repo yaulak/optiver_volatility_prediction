@@ -16,6 +16,8 @@ BEST_METADATA_PATH = os.path.join(BEST_MODEL_DIR, "best_model_metadata.json")
 NEW_MODEL_PATH = os.path.join(NEW_MODEL_DIR, "new_model.pkl")
 NEW_METADATA_PATH = os.path.join(NEW_MODEL_DIR, "new_model_metadata.json")
 
+BASELINE_METADATA_PATH = os.path.join(BASE_DIR, "models/all_models/Baselinemodel_metadata.json")
+
 
 def load_metadata(path):
     """Load model metadata (features, train/test errors)."""
@@ -28,7 +30,7 @@ def load_metadata(path):
 def compare_models():
     """Compare the new model with the best model and update if better."""
 
-    print("\n📌 Loading metadata...")
+    baseline_metadata = load_metadata(BASELINE_METADATA_PATH)
     best_metadata = load_metadata(BEST_METADATA_PATH)
     new_metadata = load_metadata(NEW_METADATA_PATH)
 
@@ -38,9 +40,12 @@ def compare_models():
 
     new_test_error = new_metadata["test_error"]
 
+    if baseline_metadata:
+        print("\n📊 Model Errors (Lower is better):")
+        print(f"Baseline Model - Test Error: {baseline_metadata["test_error"]}")
+
     if best_metadata:
         best_test_error = best_metadata["test_error"]
-        print("\n📊 Model Errors (Lower is better):")
         print(f"New Model - Test Error: {new_test_error}")
         print(f"Best Model - Test Error: {best_test_error}")
 

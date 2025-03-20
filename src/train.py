@@ -6,7 +6,7 @@ from tqdm import tqdm
 from src.utils import check_data_availability, save_train_test_split, clean_directory
 from src.feature_engineering import apply_seconds_feature_engineering, apply_timeid_feature_engineering
 from src.model_base import BaseModel
-from src.models import BaselineModel  # Import all models
+from src.models import BaselineModel, LinearRegressionModel, DecisionTreeModel  # Import all models
 
 # =======================================
 # ✅ USER INPUTS: Modify as Needed
@@ -22,7 +22,7 @@ train_test_target_split_folder = os.path.join(BASE_DIR, "train_test_split/")
 os.makedirs(train_test_target_split_folder, exist_ok=True)
 
 feature_engineering_output_folder = os.path.join(BASE_DIR, "feature_engineering_output/")
-os.makedirs(feature_engineering_output_folder, exist_ok=True)
+#os.makedirs(feature_engineering_output_folder, exist_ok=True)
 clean_directory(feature_engineering_output_folder)
 
 train_test_feature_target_folder = os.path.join(BASE_DIR, "feature_engineering_output/train_test_data/")
@@ -44,9 +44,9 @@ TRADE_SECONDS_FEATURES = {}  # Trade features at stock, time_id, seconds_in_buck
 TRADE_TIMEID_FEATURES = {}  # Trade features at stock, time_id level (empty for now)
 
 # Choose model to train
-MODEL_NAME = "Baselinemodel"  # Change to another model if needed
+MODEL_NAME = "DecisionTreeModel"  # Change to another model if needed
 
-independent_variables = ['volatility1']
+
 
 
 # =======================================
@@ -155,14 +155,20 @@ print(f"✅ Processed testing data saved to {test_features_target_path}")
 
 print("\n🤖 Step 7: Training Model...")
 
-model = BaselineModel(MODEL_NAME, feature_list = independent_variables)
+train_test_feature_target_folder = os.path.join(BASE_DIR, "feature_engineering_output/train_test_data/")
+training_data = pd.read_parquet( os.path.join(train_test_feature_target_folder, 'train_data.parquet') )
+all_cols = list(training_data.columns)
+remove_cols = ['stock_id', 'time_id', 'target']
+independent_variables = [col for col in all_cols if col not in remove_cols]
+model = DecisionTreeModel(MODEL_NAME, feature_list = independent_variables)
 
 # Train Model
 X_train = train_features_target[independent_variables].values
 y_train = train_features_target['target'].values
 model.train(X_train, y_train)
 train_error = model.evaluate(X_train, y_train)
-print(f"📊 RMSPE (Training Error): {train_error:.6f}")
+
+print(f"\n📊 RMSPE (Training Error): {train_error:.6f}")
 
 # Test data
 X_test = test_features_target[independent_variables].values
@@ -178,6 +184,7 @@ model.save_model(new_model_folder, all_models_folder)
 metadata_new_model_path = os.path.join(new_model_folder, "new_model_metadata.json")
 metadata_all_models_path = os.path.join(all_models_folder, f"{MODEL_NAME}_metadata.json")
 
+
 metadata = {
     "model_name": MODEL_NAME,
     "features": independent_variables,
@@ -191,3 +198,6 @@ with open(metadata_new_model_path, "w") as f:
 with open(metadata_all_models_path, "w") as f:
     json.dump(metadata, f)
 print(f"✅ Model metadata saved in {metadata_new_model_path} and {metadata_all_models_path}")
+
+
+print(model.feature_importance(10))
